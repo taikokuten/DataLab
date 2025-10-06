@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import io
 
-st.title(' 🖩 Calculo de las nominas')
+st.title(' 📊 Calculo de las nominas')
 st.subheader('Calculo de Uber')
 
 #Se suben el archivo de aceptacion
