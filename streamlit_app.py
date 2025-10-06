@@ -18,7 +18,7 @@ if data_acept is not None:
     df_acept = df_acept[df_acept['Nombre'] != 'Alquiler Alc Siete SL']
     df_acept['Aceptacion'] = df_acept['Aceptacion'] * 100
     df_acept = df_acept.sort_values(by='Nombre')
-    st.dataframe(df_acept[['Nombre', 'Aceptacion']])
+    st.dataframe(df_acept[['Nombre', 'Aceptacion', 'Viajes completados']])
 
     #Creacion de listas de conductores que han llegado a 70% de aceptacion y los que no.
     conductores_70 = list(df_acept[df_acept['Aceptacion'] >= 70]['Nombre'])
