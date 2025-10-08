@@ -12,24 +12,26 @@ if data_acept is not None:
     # Se genera una tabla del % de aceptacion de los conductores
     df_acept = pd.read_csv(data_acept)
     df_acept.rename(columns={'Índice de aceptación': 'Aceptacion'}, inplace=True)
+    df_acept.rename(columns={'Índice de cancelación': 'Cancelacion'}, inplace=True)
     #Union de columnas en csv de aceptacion
     df_acept['Nombre'] = df_acept['Nombre del conductor'] + ' ' + df_acept['Apellido del conductor']
     #Se oculta el nombre de Alquiler Alc Siete SL
     df_acept = df_acept[df_acept['Nombre'] != 'Alquiler Alc Siete SL']
     df_acept['Aceptacion'] = df_acept['Aceptacion'] * 100
+    df_acept['Cancelacion'] = df_acept['Cancelacion'] * 100
     df_acept = df_acept.sort_values(by='Nombre')
-    st.dataframe(df_acept[['Nombre', 'Aceptacion', 'Viajes completados']])
+    st.dataframe(df_acept[['Nombre', 'Aceptacion', 'Cancelacion', 'Viajes completados']].reset_index(drop=True))
 
     #Creacion de listas de conductores que han llegado a 70% de aceptacion y los que no.
-    conductores_70 = list(df_acept[df_acept['Aceptacion'] >= 70]['Nombre'])
-    conductores_menos_70 = list(df_acept[df_acept['Aceptacion'] < 70]['Nombre'])
+    conductores_70 = list(df_acept[(df_acept['Aceptacion'] >= 70) & (df_acept['Cancelacion'] < 10)]['Nombre'])
+    conductores_menos_70 = list(df_acept[(df_acept['Aceptacion'] < 70) | (df_acept['Cancelacion'] >= 10)]['Nombre'])
     if 'Alquiler Alc Siete SL' in conductores_menos_70:
         conductores_menos_70.remove('Alquiler Alc Siete SL')
     conductores_menos_70.sort()
     conductores_70.sort()
     
     st.write(f'Han llegado a 70%  {len(conductores_70)} conductores.')
-    st.write(f'No han llegado a 70% {len(conductores_menos_70)} conductores.')  
+    st.write(f'No han llegado a 70% {len(conductores_menos_70)} conductores.')
 st.write("")
 st.write("")
 st.write("")
@@ -57,8 +59,9 @@ if data_fact is not None:
         nomina_conductor = (total_facturado_sin_iva*0.3) + total_propina + (total_promociones/1.1)
         efectivo = total_facturado_sin_iva*0.05
         aceptacion = df_acept[df_acept['Nombre'] == conductor]['Aceptacion'].values[0]
+        cancelacion = df_acept[df_acept['Nombre'] == conductor]['Cancelacion'].values[0]
         my_dict = {}
-        my_dict.update({'Nombre': conductor, 'Nomina Uber': round(nomina_conductor, 2), 'Efectivo Uber': round(efectivo, 2), 'Aceptacion %': aceptacion})
+        my_dict.update({'Nombre': conductor, 'Nomina Uber': round(nomina_conductor, 2), 'Efectivo Uber': round(efectivo, 2), 'Aceptacion %': aceptacion, 'Cancelacion %': cancelacion})
         data.append(my_dict)
 
     for conductor in conductores_menos_70:
@@ -70,14 +73,16 @@ if data_fact is not None:
         nomina_conductor = (total_facturado_sin_iva*0.25) + total_propina + (total_promociones/1.1)
         efectivo = total_facturado_sin_iva*0.05
         aceptacion = df_acept[df_acept['Nombre'] == conductor]['Aceptacion'].values[0]
+        cancelacion = df_acept[df_acept['Nombre'] == conductor]['Cancelacion'].values[0]
         my_dict = {}
-        my_dict.update({'Nombre': conductor, 'Nomina Uber': round(nomina_conductor, 2), 'Efectivo Uber': round(efectivo, 2), 'Aceptacion %': aceptacion})
+        my_dict.update({'Nombre': conductor, 'Nomina Uber': round(nomina_conductor, 2), 'Efectivo Uber': round(efectivo, 2), 'Aceptacion %': aceptacion, 'Cancelacion %': cancelacion})
         data.append(my_dict)
 
     
 
     df_nomina = pd.DataFrame(data)
-    st.dataframe(df_nomina)
+    df_nomina = df_nomina.sort_values(by='Nombre')
+    st.dataframe(df_nomina.reset_index(drop=True))
 
     output = io.BytesIO()
     df_nomina.to_excel(output, index=False)
