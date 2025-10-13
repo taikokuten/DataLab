@@ -39,8 +39,10 @@ def calculo_uber():
         df_fact = pd.read_csv(data_fact)
 
         #Cambio de nombres de las columnas en csv de facturacion
-        df_fact.rename(columns={'Importe que se te ha pagado : Tus ganancias': 'Total facturado', 'Importe que se te ha pagado:Tus ganancias:Propina': 'Propina', 'Importe que se te ha pagado:Tus ganancias:Promoción:Reto': 'Reto'}, inplace=True)
-        
+        df_fact.rename(columns={'Importe que se te ha pagado : Tus ganancias': 'Total facturado', 'Importe que se te ha pagado:Tus ganancias:Propina': 'Propina'}, inplace=True)
+        #Se la columna reto existe, se cambia el nombre
+        if 'Importe que se te ha pagado:Tus ganancias:Promoción:Reto' in df_fact.columns:
+            df_fact.rename(columns={'Importe que se te ha pagado:Tus ganancias:Promoción:Reto': 'Reto'}, inplace=True)
         #Union de columnas en csv de facturacion
         df_fact['Nombre'] = df_fact['Nombre del conductor'] + ' ' + df_fact['Apellido del conductor']
         
@@ -50,7 +52,11 @@ def calculo_uber():
         for conductor in conductores_70:
             total_facturado = df_fact[df_fact['Nombre'] == conductor]['Total facturado'].sum()
             total_propina = df_fact[df_fact['Nombre'] == conductor]['Propina'].sum()
-            total_promociones = df_fact[df_fact['Nombre'] == conductor]['Reto'].sum()
+            #Si la columna reto existe hacemos los calculos de las promociones
+            if 'Reto' in df_fact.columns:
+                total_promociones = df_fact[df_fact['Nombre'] == conductor]['Reto'].sum()
+            else:
+                total_promociones = 0
             total_facturado_viajes = total_facturado - total_promociones - total_propina
             total_facturado_sin_iva = total_facturado_viajes/1.1
             nomina_conductor = (total_facturado_sin_iva*0.3) + total_propina + (total_promociones/1.1)
@@ -64,7 +70,11 @@ def calculo_uber():
         for conductor in conductores_menos_70:
             total_facturado = df_fact[df_fact['Nombre'] == conductor]['Total facturado'].sum()
             total_propina = df_fact[df_fact['Nombre'] == conductor]['Propina'].sum()
-            total_promociones = df_fact[df_fact['Nombre'] == conductor]['Reto'].sum()
+            #Si la columna reto existe hacemos los calculos de las promociones
+            if 'Reto' in df_fact.columns:
+                total_promociones = df_fact[df_fact['Nombre'] == conductor]['Reto'].sum()
+            else:
+                total_promociones = 0
             total_facturado_viajes = total_facturado - total_promociones - total_propina
             total_facturado_sin_iva = total_facturado_viajes/1.1
             nomina_conductor = (total_facturado_sin_iva*0.25) + total_propina + (total_promociones/1.1)
