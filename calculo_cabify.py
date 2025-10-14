@@ -38,18 +38,27 @@ if cabify_acept_data:
         else:
             conductores_menos_70.append(conductor)
         dict_aceptacion = {}
-        dict_aceptacion.update({'Nombre': conductor, 'Aceptacion': round(promedio_de_aceptacion, 2)})
+        dict_aceptacion.update({'Nombre': conductor, 'Aceptacion': round(promedio_de_aceptacion, 0)})
         data_aceptacion.append(dict_aceptacion)
 
+    #Funcion para colorear la columna aceptacion
+    def color_aceptacion(val):
+        if val >= 70:
+            return 'background-color: #d4edda; color: #155724'
+        else:
+            return 'background-color: #f8d7da; color: #721c24'
 
     df_acept = pd.DataFrame(data_aceptacion)
     df_acept = df_acept.sort_values(by='Nombre', ignore_index=True)
+    styled_df = df_acept.style.map(color_aceptacion, subset=['Aceptacion']) \
+                            .format({'Aceptacion': '{:.0f}'})
 
-    st.dataframe(df_acept)
-    
-    
+    st.dataframe(styled_df)
+
+    st.write(f'Han llegado a 70%:  {len(conductores_70)} conductores.')
+    st.write(f'No han llegado a 70%: {len(conductores_menos_70)} conductores.')
+    st.write(f'La media de aceptacion es {round(df_acept['Aceptacion'].mean(), 2)} %')   
 st.divider()
-
 #Calculo de la nomina de conductores.
 cabify_fact_data = st.file_uploader('Subir archivo excel de facturacion (Finanzas > Descargar totales).')
 #Se calcula la nomina a 30% + 5% efectivo.
@@ -90,7 +99,6 @@ if cabify_fact_data is not None:
     if "Alquiler Alc 7 SL" in conductores_facturacion and "Totales compañía" in conductores_facturacion:
         conductores_facturacion.remove("Alquiler Alc 7 SL")
         conductores_facturacion.remove("Totales compañía")
-    
 
     data_facturacion = []
     for conductor in conductores_facturacion:
@@ -137,5 +145,3 @@ if cabify_fact_data is not None:
         mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         icon=":material/download:"
     )
-        
-
