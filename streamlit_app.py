@@ -7,6 +7,8 @@ def calculo_uber():
     #Se suben el archivo de aceptacion
     data_acept = st.file_uploader('Subir archivo CSV de aceptacion de Uber', type='csv')
     # Se genera una tabla del % de aceptacion de los conductores
+    conductores_70 = []
+    conductores_menos_70 = []
     if data_acept is not None:
         # Se genera una tabla del % de aceptacion de los conductores
         df_acept = pd.read_csv(data_acept)
@@ -19,18 +21,38 @@ def calculo_uber():
         df_acept['Aceptacion'] = df_acept['Aceptacion'] * 100
         df_acept['Cancelacion'] = df_acept['Cancelacion'] * 100
         df_acept = df_acept.sort_values(by='Nombre')
-        st.dataframe(df_acept[['Nombre', 'Aceptacion', 'Cancelacion', 'Viajes completados']].reset_index(drop=True))
+        
+
+        #Funcion para colorear la columna de aceptacion y cancelacion
+        def color_aceptacion(val):
+            if val >= 70:
+                return 'background-color: #d4edda; color: #155724'
+            else:
+                return 'background-color: #f8d7da; color: #721c24'
+
+        def color_cancelacion(val):
+            if val < 10:
+                return 'background-color: #d4edda; color: #155724'
+            else:
+                return 'background-color: #f8d7da; color: #721c24'
+
+        df_display = df_acept[['Nombre', 'Aceptacion', 'Cancelacion', 'Viajes completados']].reset_index(drop=True)
+        styled_df = df_display.style.map(color_aceptacion, subset=['Aceptacion']) \
+                                .map(color_cancelacion, subset=['Cancelacion']) \
+                                .format({'Aceptacion': '{:.0f}', 'Cancelacion': '{:.0f}'})
+
+        st.dataframe(styled_df)
 
         #Creacion de listas de conductores que han llegado a 70% de aceptacion y los que no.
         conductores_70 = list(df_acept[(df_acept['Aceptacion'] >= 70) & (df_acept['Cancelacion'] < 10)]['Nombre'])
         conductores_menos_70 = list(df_acept[(df_acept['Aceptacion'] < 70) | (df_acept['Cancelacion'] >= 10)]['Nombre'])
-        if 'Alquiler Alc Siete SL' in conductores_menos_70:
-            conductores_menos_70.remove('Alquiler Alc Siete SL')
         conductores_menos_70.sort()
         conductores_70.sort()
         
-        st.write(f'Han llegado a 70%  {len(conductores_70)} conductores.')
-        st.write(f'No han llegado a 70% {len(conductores_menos_70)} conductores.')
+        st.write(f'Han llegado a 70%:  {len(conductores_70)} conductores.')
+        st.write(f'No han llegado a 70%: {len(conductores_menos_70)} conductores.')
+        st.write(f'La media de aceptacion es {round(df_acept['Aceptacion'].mean(), 2)} %')
+        st.write(f'La media de cancelacion es {round(df_acept['Cancelacion'].mean(), 2)} %')
     st.divider()
     #Se sube el archivo de facturacion de Uber
     data_fact = st.file_uploader('Subir archivo CSV de facturacion de Uber', type='csv')
